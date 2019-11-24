@@ -538,7 +538,11 @@ sequenceDiagram
 
 
 
-### （2）工作区状态随时查看
+### （2）关联远程库后状态变化
+
++ `git status`此时GIt会比较你当前最新提交和远程库的origin/master分支之间相差几个版本。
+
+### （3）工作区状态随时查看
 
 1. 要随时掌握工作区的状态，使用`git status`命令
 
@@ -606,6 +610,12 @@ $ git status
 
 
 
+### （0）三个含义：
+
+1. 将未追踪的文件添加进Index区并保持追踪状态，且为Staged状态；
+2. 将已经被追踪，处于修改状态的文件纳入到Index区中，变成Staged状态；
+3. 标识文件“冲突被解决”
+
 ### （1）`git commit -a`
 
 【等同于git add】
@@ -615,6 +625,10 @@ $ git status
 ### （2）`git add .`
 
 【将所有文件都添加进暂存区】
+
++ 不同于`git add *`，这个尽量别用。
++ `git add .`会把当前文件夹都添加到Index区，但是被忽略的文件不添加；
++ `git add *` 则是全部添加，包括被忽略的文件。
 
 
 
@@ -1165,10 +1179,9 @@ $ git blame test1.txt
 ### （1）查看分支
 
 1. 查看分支：`git branch`
-
 2. 查看分支带当前版本信息：`git branch -v`
-
 3. `git branch -vv`
+4. `git branch -a`列出所有的本地分支和远程分支
 
 ### （2）创建分支
 
@@ -1677,7 +1690,15 @@ Git会告诉你已经把GitHub的Key添加到本机的一个信任列表里了�
 
 ## 7.2 关联远程库
 
-### （1）`git remote -v`查看远程库信息
+### （0）`git branch -av`列出所有的本地分支和远程分支详细信息
+
+```shell
+
+```
+
+
+
+### （1）`git remote show`查看远程库信息
 
 + `git remote show`：展示本地所有远程库信息；
 
@@ -1696,7 +1717,7 @@ Git会告诉你已经把GitHub的Key添加到本机的一个信任列表里了�
 
     
 
-+ `git remote show <远程仓库别名>：`
++ `git remote show <远程仓库别名>：`展示具体某个远程库的详细信息
 
     ```shell
     $ git remote show origin
@@ -1709,10 +1730,12 @@ Git会告诉你已经把GitHub的Key添加到本机的一个信任列表里了�
       Local branch configured for 'git pull':
         master merges with remote master
       Local ref configured for 'git push':
-        master pushes to master (local out of date)
+        master pushes to master (local out of date) # 本地库落后远程库了
     ```
 
-    
+
+
+​    
 
 ### （2）`git remote add <远程库别名> <URL>`添加远程库
 
@@ -1744,13 +1767,49 @@ Git会告诉你已经把GitHub的Key添加到本机的一个信任列表里了�
 
 ## 7.3 `git push <远程库别名> <branchname>`将本地库推送到远程库
 
-1. 把本地库的所有内容推送到远程库上
+### （1）命令原理：
 
-    `git push -u origin master`
+当执行`gti push`的时候实际上是在执行以下两个操作：
 
-2. 以后只要本地做了提交：
+1. 首先把本地库新增的版本推送到远程；
+2. 然后将origin/master分支指向本地最新的提交版本（因为没有推送前，这个分支落后于本地最新的master指向的版本库内容）；
 
-    `git push <远程库别名> <branchname>`
+### （2）操作步骤
+
+1. 修改好一个版本；
+
+2. `git commit -a -m <description>`；
+
+3. `git status`
+
+4. 提醒你现在的版本领先于远程库一次提交；
+
+    ```shell
+    You branch is ahead of 'origin/master' by 1 commit
+    ```
+
+5. `git push`
+
+6. `git status`
+
+7. `git branch -av`查看本地分支和远程分支都在哪个版本的commit_id上；
+
+    ```shell
+    master				  <commit_id> <filename>
+    remotes/origin/master <commit_id> <filename>
+    ```
+
+    【此时两个分支的commit_id相同，说明指向同一个版本】
+
+### （3）选项
+
++ `git push -u origin master`把本地库的所有内容推送到远程库上；
+
+### （4）`git checkout origin/master`
+
++ 当执行`git checkout origin/master`时，相当于`git checkout <commit_id>`，HEAD指针变成游离（detached HEAD）状态，也就是说Git不允许我们切换到这个分支。详见3.12
+
+
 
 ## 7.4 从远程库获取至本地
 
@@ -1823,6 +1882,7 @@ Git会告诉你已经把GitHub的Key添加到本机的一个信任列表里了�
 4. 克隆一个本地库
 
     `git clone <URL>`
+5. 克隆的同时更改仓库名字`gti clone <URL> <new_repo.name>`
 
 
 ### （2）`git fetch <远程库别名> <远程库分支名>`
@@ -1836,6 +1896,9 @@ Git会告诉你已经把GitHub的Key添加到本机的一个信任列表里了�
 ### （3）`git pull`拉到本地工作区
 
 + `git pull == git fetch + git merge`
++ 合并模式：
+    1. fast-forward
+    2. 冲突合并，详见4.2（2）
 
 ### （4）`clone`，`fetch`与`pull`命令的区别：
 
@@ -1853,6 +1916,81 @@ Git会告诉你已经把GitHub的Key添加到本机的一个信任列表里了�
 
     1. `git fetch`
     2. `git merge <远程库别名>/<远程库分支名>`  
+
+### （5）操作
+
+1. `git remote show`
+
+2. `git remote show origin`
+
+3. `git status`
+
+4. `git log`
+
+5. `git pull` == `git fetch` + `git merge`
+
+    + Fast-forward
+
+    + 有冲突：
+
+        1. vim进去修改
+
+        2. `cat <filename>`
+
+        3. `git status`
+
+            ```shell
+            On bracnh master
+            Your branch and 'origin/master' have diverged,
+            and hanve 1 and 1 different commit each, respectively.
+             (use "git pull" to merge the remote branch into yours)
+            You have unmerged paths.
+             (fix conflicts and run "git commit")
+             
+            Unmerged paths:
+             (use "git add <file>..." to mark resolution)
+             		both modified: test1.txt （红色字）
+            
+            no changes added to commit(use "git add" and/or "git commit -a")
+            ```
+
+            
+
+        4. `git add <filename>`
+
+        5. `git status`
+
+            ```shell
+            On bracnh master
+            Your branch and 'origin/master' have diverged,
+            and hanve 1 and 1 different commit each, respectively.
+             (use "git pull" to merge the remote branch into yours)
+            All conflicts fixed but you are still merging.
+             (Use "git commit" to conclude merge)
+             
+             noting to commit, working directory clean
+            ```
+
+            
+
+        6. `git commit -m <fn>`
+
+        7. `git status`
+
+            ```shell
+            On branch master
+            Your branch is ahead of 'origin/master' by 2 commits.
+             (use "git push" to publish your local commits)
+            nothing to commit, working directory clean
+            ```
+
+        8. `git branch -av `
+
+        9. `git log`
+
+6. `git status`
+
+7. `git log`
 
 # 8. 使用GitHub
 
